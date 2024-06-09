@@ -3,104 +3,183 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+namespace TreasureHunters
 {
-    private Animator playerAnimator;
-
-    private Rigidbody2D rB2D;
-    private Vector2 movementInput;
-    private float jumpForce;
-
-    private float coyoteTime = 0.2f;
-    private float coyoteTimeCounter;
-
-    private float jumpBufferTime = 0.2f;
-    private float jumpBufferCounter;
-
-    [SerializeField] private float speed;
-    [SerializeField] private Transform checkGroundTR;
-    [SerializeField] private float groundCheckerRadius;
-    [SerializeField] private LayerMask isGround;
-
-    void Start()
+    public class PlayerController : MonoBehaviour
     {
-        rB2D = GetComponent<Rigidbody2D>();
-        playerAnimator = GetComponent<Animator>();
-        jumpForce = 15f;
-    }
+        private Animator playerAnimator;
+        private PlayerLifeController playerLifeController;
 
-    // Update is called once per frame
-    void Update()
-    {
-        Walk();
+        private Rigidbody2D rB2D;
+        private Vector2 movementInput;
+        private float jumpForce;
 
-        Jump();
+        private float coyoteTime = 0.2f;
+        private float coyoteTimeCounter;
 
-        playerAnimator.SetFloat("VelX", Mathf.Abs(rB2D.velocity.x));
-        playerAnimator.SetFloat("VelY", rB2D.velocity.y);
-        playerAnimator.SetBool("IsGrounded", IsGrounded());
-    }
+        private float jumpBufferTime = 0.2f;
+        private float jumpBufferCounter;
 
-    private void Walk()
-    {
-        movementInput = new Vector2(Input.GetAxis("Horizontal") * speed, rB2D.velocity.y);
+        private bool isAttacking;
+        [SerializeField] private float attackDelay;
+        [SerializeField] private Transform firstAttackZone;
+        [SerializeField] private Transform secondAttackZone;
+        [SerializeField] private float attackZoneRadius;
+        [SerializeField] private LayerMask isAttackable;
+        [SerializeField] private int damage;
+        private float attackTimeCounter;
 
-        if (movementInput.x > 0)
+        [SerializeField] private float speed;
+        [SerializeField] private Transform checkGroundZone;
+        [SerializeField] private float groundCheckerRadius;
+        [SerializeField] private LayerMask isGround;
+
+        private void Start()
         {
-            transform.localScale = new Vector3(1, 1, 1);
-        }
-        else if (movementInput.x < 0)
-        {
-            transform.localScale = new Vector3(-1, 1, 1);
-        }
-
-    }
-
-    private void Jump()
-    {
-        if (IsGrounded())
-        {
-            coyoteTimeCounter = coyoteTime;
-        }
-        else
-        {
-            coyoteTimeCounter -= Time.deltaTime;
+            rB2D = GetComponent<Rigidbody2D>();
+            playerAnimator = GetComponent<Animator>();
+            playerLifeController = GetComponent<PlayerLifeController>();
+            jumpForce = 15f;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Update is called once per frame
+        private void Update()
         {
-            jumpBufferCounter = jumpBufferTime;
-        }
-        else
-        {
-            jumpBufferCounter -= Time.deltaTime;
+            Walk();
+
+            Jump();
+
+            Attack();
+
+            playerAnimator.SetFloat("VelX", Mathf.Abs(rB2D.velocity.x));
+            playerAnimator.SetFloat("VelY", rB2D.velocity.y);
+            playerAnimator.SetBool("IsGrounded", IsGrounded());
         }
 
-        if (coyoteTimeCounter > 0f && jumpBufferCounter > 0f)
+        private void Walk()
         {
-            rB2D.velocity = new Vector2(rB2D.velocity.x, jumpForce);
-            jumpBufferCounter = 0f;
+            if (isAttacking || playerLifeController.isHited) return;
+            movementInput = new Vector2(Input.GetAxis("Horizontal") * speed, rB2D.velocity.y);
+
+            if (movementInput.x > 0)
+            {
+                transform.localScale = new Vector3(1, 1, 1);
+            }
+            else if (movementInput.x < 0)
+            {
+                transform.localScale = new Vector3(-1, 1, 1);
+            }
+
         }
-        if (Input.GetKeyUp(KeyCode.Space) && rB2D.velocity.y > 0f)
+
+        private void Jump()
         {
-            rB2D.velocity = new Vector2(rB2D.velocity.x, rB2D.velocity.y * 0.5f);
-            coyoteTimeCounter = 0f;
+            if (isAttacking || playerLifeController.isHited) return;
+
+            if (IsGrounded())
+            {
+                coyoteTimeCounter = coyoteTime;
+            }
+            else
+            {
+                coyoteTimeCounter -= Time.deltaTime;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                jumpBufferCounter = jumpBufferTime;
+            }
+            else
+            {
+                jumpBufferCounter -= Time.deltaTime;
+            }
+
+            if (coyoteTimeCounter > 0f && jumpBufferCounter > 0f)
+            {
+                rB2D.velocity = new Vector2(rB2D.velocity.x, jumpForce);
+                jumpBufferCounter = 0f;
+            }
+            if (Input.GetKeyUp(KeyCode.Space) && rB2D.velocity.y > 0f)
+            {
+                rB2D.velocity = new Vector2(rB2D.velocity.x, rB2D.velocity.y * 0.5f);
+                coyoteTimeCounter = 0f;
+            }
         }
-    }
 
-    private void FixedUpdate()
-    {
-        rB2D.velocity = movementInput;
-    }
+        private void Attack()
+        {
+            if (attackTimeCounter > 0f)
+            {
+                attackTimeCounter -= Time.deltaTime;
+            }
 
-    private bool IsGrounded()
-    {
-        return Physics2D.OverlapCircle(checkGroundTR.position, groundCheckerRadius, isGround);
-    }
+            if (Input.GetKeyDown(KeyCode.U) && IsGrounded() && attackTimeCounter <= 0f)
+            {
+                if (secondAttackZone != null)
+                {
+                    Collider2D[] charactersReachedFirstZone = Physics2D.OverlapCircleAll(firstAttackZone.position, attackZoneRadius, isAttackable);
+                    foreach (Collider2D character in charactersReachedFirstZone)
+                    {
+                        Debug.Log("Personaje atacado");
+                    }
+                    Collider2D[] charactersReachedSecondZone = Physics2D.OverlapCircleAll(secondAttackZone.position, attackZoneRadius, isAttackable);
+                    foreach (Collider2D character in charactersReachedSecondZone)
+                    {
+                        Debug.Log("Personaje atacado");
+                    }
+                }
+                else
+                {
+                    Collider2D[] charactersReached = Physics2D.OverlapCircleAll(firstAttackZone.position, attackZoneRadius, isAttackable);
+                    foreach (Collider2D character in charactersReached)
+                    {
+                        character.GetComponent<PlayerLifeController>().TakeDamage(damage);
+                    }
+                }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = IsGrounded() ? Color.green : Color.red;
-        Gizmos.DrawWireSphere(checkGroundTR.position, groundCheckerRadius);
+                rB2D.velocity = Vector2.zero;
+                movementInput = Vector2.zero;
+                playerAnimator.SetTrigger("Attack");
+                attackTimeCounter = attackDelay;
+            }
+        }
+
+        private void AttackStarts()
+        {
+            isAttacking = true;
+        }
+
+        private void AttackEnds()
+        {
+            isAttacking = false;
+        }
+
+        private void FixedUpdate()
+        {
+            if (isAttacking || playerLifeController.isHited) return;
+            rB2D.velocity = movementInput;
+        }
+
+        private bool IsGrounded()
+        {
+            return Physics2D.OverlapCircle(checkGroundZone.position, groundCheckerRadius, isGround);
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = IsGrounded() ? Color.green : Color.red;
+            Gizmos.DrawWireSphere(checkGroundZone.position, groundCheckerRadius);
+
+            Gizmos.color = Color.cyan;
+            if (secondAttackZone != null)
+            {
+                Gizmos.DrawWireSphere(firstAttackZone.position, attackZoneRadius);
+                Gizmos.DrawWireSphere(secondAttackZone.position, attackZoneRadius);
+            }
+            else
+            {
+                Gizmos.DrawWireSphere(firstAttackZone.position, attackZoneRadius);
+            }
+        }
     }
 }
