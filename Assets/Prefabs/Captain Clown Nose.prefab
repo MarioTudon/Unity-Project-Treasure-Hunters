@@ -48,7 +48,7 @@ GameObject:
   - component: {fileID: 5099841779878817703}
   m_Layer: 6
   m_Name: Captain Clown Nose
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -225,7 +225,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   damage: 3
-  speed: 5
+  speed: 4
   checkGroundZone: {fileID: 6548512451336180685}
   groundCheckerRadius: 0.1
   isGround:
@@ -244,7 +244,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   life: 5
-  lifeText: {fileID: 0}
   isHited: 0
 --- !u!1 &8354962665192013295
 GameObject:
@@ -256,7 +255,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6322282252647997687}
   m_Layer: 0
-  m_Name: First Attack Zone
+  m_Name: Attack Zone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

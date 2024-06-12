@@ -1,14 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace TreasureHunters
 {
     public class PlayerLifeController : MonoBehaviour
     {
         [SerializeField] private int life;
-        [SerializeField] private Text lifeText;
         private Animator playerAnimator;
         private Rigidbody2D rB2D;
         [HideInInspector] public bool isHited;
@@ -21,7 +19,6 @@ namespace TreasureHunters
 
         private void Update()
         {
-            lifeText.text = "Life: " + life;
             playerAnimator.SetInteger("Life", life);
         }
 

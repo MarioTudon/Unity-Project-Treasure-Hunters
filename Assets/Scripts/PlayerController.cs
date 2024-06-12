@@ -115,28 +115,6 @@ namespace TreasureHunters
 
             if (Input.GetKeyDown(KeyCode.U) && IsGrounded() && attackTimeCounter <= 0f)
             {
-                if (secondAttackZone != null)
-                {
-                    Collider2D[] charactersReachedFirstZone = Physics2D.OverlapCircleAll(firstAttackZone.position, attackZoneRadius, isAttackable);
-                    foreach (Collider2D character in charactersReachedFirstZone)
-                    {
-                        Debug.Log("Personaje atacado");
-                    }
-                    Collider2D[] charactersReachedSecondZone = Physics2D.OverlapCircleAll(secondAttackZone.position, attackZoneRadius, isAttackable);
-                    foreach (Collider2D character in charactersReachedSecondZone)
-                    {
-                        Debug.Log("Personaje atacado");
-                    }
-                }
-                else
-                {
-                    Collider2D[] charactersReached = Physics2D.OverlapCircleAll(firstAttackZone.position, attackZoneRadius, isAttackable);
-                    foreach (Collider2D character in charactersReached)
-                    {
-                        character.GetComponent<PlayerLifeController>().TakeDamage(damage);
-                    }
-                }
-
                 rB2D.velocity = Vector2.zero;
                 movementInput = Vector2.zero;
                 playerAnimator.SetTrigger("Attack");
@@ -144,9 +122,45 @@ namespace TreasureHunters
             }
         }
 
+        private void PerformAttack()
+        {
+            if (secondAttackZone != null)
+            {
+                Collider2D[] charactersReachedFirstZone = Physics2D.OverlapCircleAll(firstAttackZone.position, attackZoneRadius, isAttackable);
+                foreach (Collider2D character in charactersReachedFirstZone)
+                {
+                    character.GetComponent<PlayerLifeController>().TakeDamage(damage);
+                }
+                Collider2D[] charactersReachedSecondZone = Physics2D.OverlapCircleAll(secondAttackZone.position, attackZoneRadius, isAttackable);
+                foreach (Collider2D character in charactersReachedSecondZone)
+                {
+                    character.GetComponent<PlayerLifeController>().TakeDamage(damage);
+                }
+            }
+            else
+            {
+                Collider2D[] charactersReached = Physics2D.OverlapCircleAll(firstAttackZone.position, attackZoneRadius, isAttackable);
+                foreach (Collider2D character in charactersReached)
+                {
+                    character.GetComponent<PlayerLifeController>().TakeDamage(damage);
+                }
+            }
+
+        }
+
         private void AttackStarts()
         {
             isAttacking = true;
+        }
+
+        private void AttackWithMovementStarts()
+        {
+            rB2D.velocity = new Vector2(transform.localScale.x * speed * 1.5f, rB2D.velocity.y);
+        }
+
+        private void AttackWithMovementEnds()
+        {
+            rB2D.velocity = Vector2.zero;
         }
 
         private void AttackEnds()
