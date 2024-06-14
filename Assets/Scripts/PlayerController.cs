@@ -49,7 +49,11 @@ namespace TreasureHunters
 
             Jump();
 
-            Attack();
+            BasicAttack();
+
+            SpecialAttack1();
+
+            SpecialAttack2();
 
             playerAnimator.SetFloat("VelX", Mathf.Abs(rB2D.velocity.x));
             playerAnimator.SetFloat("VelY", rB2D.velocity.y);
@@ -106,7 +110,7 @@ namespace TreasureHunters
             }
         }
 
-        private void Attack()
+        private void BasicAttack()
         {
             if (attackTimeCounter > 0f)
             {
@@ -115,9 +119,25 @@ namespace TreasureHunters
 
             if (Input.GetKeyDown(KeyCode.U) && IsGrounded() && attackTimeCounter <= 0f)
             {
-                rB2D.velocity = Vector2.zero;
-                movementInput = Vector2.zero;
-                playerAnimator.SetTrigger("Attack");
+                playerAnimator.SetTrigger("Basic Attack");
+                attackTimeCounter = attackDelay;
+            }
+        }
+
+        private void SpecialAttack1()
+        {
+            if (Input.GetKeyDown(KeyCode.I))
+            {
+                playerAnimator.SetTrigger("Special Attack 1");
+                attackTimeCounter = attackDelay;
+            }
+        }
+
+        private void SpecialAttack2()
+        {
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                playerAnimator.SetTrigger("Special Attack 2");
                 attackTimeCounter = attackDelay;
             }
         }
@@ -151,6 +171,8 @@ namespace TreasureHunters
         private void AttackStarts()
         {
             isAttacking = true;
+            rB2D.velocity = Vector2.zero;
+            movementInput = Vector2.zero;
         }
 
         private void AttackWithMovementStarts()
